@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		  <style type="text/css">
+		    
+			* {margin:0; padding:0; }
+li{list-style:none; }
+ .scroll{width: 850px;height: 500px;margin: 50px auto;border: 1px solid #ccc;padding: 7px;position: relative;}
+#div1 {width:850px; height:500px;  overflow:hidden; position:relative;}
+#div1 ul {width: 5100px;height:500px;position: absolute;left: 0;top: 0;}
+#div1 ul li {width:850px; height:500px;  overflow:hidden; float: left;}
+#div1 ol {position:absolute;right: 10%;bottom: 10px;z-index:6}
+#div1 ol li{width: 20px;height: 20px;background: #fff;margin-left: 5px;float: left;line-height: 20px;text-align: center;cursor: pointer;}
+#div1 ol li.ac{background: red;color: #fff;}
+#div1>a{text-decoration: none;position: absolute;top: 50%;margin-top: -10px;height: 40px;line-height: 32px;text-align: center;width: 40px;font-size: 40px;vertical-align: middle;color: #fff;background: rgba(0,0,0,0.5);z-index:6;}
+#goPrev{left: 0;}
+#goNext{right: 0;}
+img{width:850px; height:500px;}
+        </style>
+	<body>
+		<div class="scroll">
+			<div id="div1">
+				<ul>
+    				<li><a href="javascript:alert(0);"><img src="1.jpg" /></a></li>
+    				<li><a href="javascript:alert(1);"><img src="2.jpg" /></a></li>
+    				<li><a href="javascript:alert(2);"><img src="3.jpg" /></a></li>
+    				<li><a href="javascript:alert(3);"><img src="4.jpg" /></a></li>
+    				<li><a href="javascript:alert(4);"><img src="5.jpg" /></a></li>
+   				</ul>
+  				<ol>
+    				<!--<li class="ac">1</li>
+    				<li>2</li>
+    				<li>3</li>
+    				<li>4</li>
+    				<li>5</li>-->
+    			</ol>
+    			<a href="javascript:;" id="goPrev">&laquo;</a>
+    			<a href="javascript:;" id="goNext">&raquo;</a>
+			</div>
+		</div>
+		
+		<script>
+//			var scroll = document.querySelector(".scroll"),
+//				div = scroll.querySelector("#div1"),
+//				imgs = div.querySelector("ul").children,
+//				btns = div.querySelector("ol").children,
+//				goPrev = div.querySelector("#goPrev"),
+//				goNext = div.querySelector("#goNext");
+			class Rpmap {
+				constructor(selector){
+					this.scroll = document.querySelector(selector);
+					this.div = this.scroll.querySelector("#div1");
+					this.ul = this.div.querySelector("ul");
+					this.imgs = this.ul.children;
+					this.imgWidth = this.div.offsetWidth;
+					this.ol = this.div.querySelector("ol");
+					this.goPrev = this.div.querySelector("#goPrev");
+					this.goNext = this.div.querySelector("#goNext");
+					this.n = 0;
+					
+					
+					
+					this.render();
+					//找到ol里所有的按钮
+					this.li = Array.from(this.ol.querySelectorAll("li"));
+					this.bindEvents();
+				}
+				
+				render() {
+					for(var i=0; i<this.imgs.length; i++){
+						var li = document.createElement("li");// 创建li元素
+           				li.innerHTML = i + 1;// 给li里面添加文字  1 2 3 4 5
+            			this.ol.appendChild(li);
+            			li.setAttribute("index", i);
+					}
+					this.ol.children[0].className = "ac";
+					
+					//克隆一个ul中第一个li,加入到ul中的最后
+  					this.ul.appendChild(this.ul.children[0].cloneNode(true));
+				}
+				bindEvents() {	
+					//给li按钮绑事件
+					this.li.forEach(li => {
+						li.onclick = () => {
+							this.changeBtn(li);	
+						}
+					})					
+					
+					//给goPrev绑事件
+					this.goPrev.onclick = () => {
+						this.clickLeft();
+					}
+					
+					//给goNext绑事件
+					this.goNext.onclick = () => {
+						this.clickRight();
+					}
+					//给鼠标进入绑事件
+					this.scroll.onmouseover = () => {
+						this.over();
+					}
+					
+					//给鼠标移除绑事件
+					this.scroll.onmouseout = () => {
+						this.out();
+					}
+				}
+				
+				//自动播放
+				timeId= setInterval(this.clickRight.bind(this),2000);
+				
+				//鼠标进入
+				over() {
+					let timeId = this.timeId;
+					clearInterval(timeId);
+				}
+				
+				//鼠标移出
+				out() {
+					this.timeId= setInterval(this.clickRight.bind(this),2000);
+				}
+				
+				//li按钮变换
+				changeBtn(li) {
+					this.li.forEach(li => {
+						li.removeAttribute("class");
+					})
+					li.className = "ac";
+					//获取鼠标进入的li的当前索引值
+      				this.n = li.getAttribute("index");
+      				this.changeImg(this.ul, -this.n * this.imgWidth);
+				}
+				
+				//goPrev按钮变换
+				clickLeft() {
+					if (this.n == 0) {
+      					this.n = 5;
+      					this.ul.style.left = -this.n * this.imgWidth + "px";
+    				}
+    				this.n--;
+    				this.changeImg(this.ul, -this.n * this.imgWidth);
+    				//设置小按钮的颜色---所有的小按钮干掉颜色
+    				for (var i = 0; i < this.ol.children.length; i++) {
+      					this.ol.children[i].removeAttribute("class");
+    				}
+    				//当前的pic索引对应的按钮设置颜色
+    				this.ol.children[this.n].className = "ac";
+				}
+				
+				//goNext按钮变换
+				clickRight() {
+					//如果当前n的值是5，则变为0，显示第六张图，则把它显示为克隆出来的第一张图
+					if(this.n == this.imgs.length-1){
+						this.n = 0;
+						//把ul的位置还原成开始的默认位置
+						this.ul.style.left = 0 + "px";
+					}
+					this.n++;
+					this.changeImg(this.ul, -this.n * this.imgWidth);
+					//如果n==5说明,此时显示第6个图(内容是第一张图片),第一个小按钮有颜色,
+    				if (this.n == this.li.length) {
+      					//第五个按钮颜色干掉
+      					this.ol.children[this.ol.children.length - 1].className = "";
+      					//第一个按钮颜色设置上
+      					this.ol.children[0].className = "ac";
+    				} else {
+      					//干掉所有的小按钮的背景颜色
+      					this.li.forEach(li => {
+							li.removeAttribute("class");
+						})
+      					this.ol.children[this.n].className = "ac";
+      				}
+					
+				}
+				
+				
+				
+				//图片变换
+				changeImg(element, target){
+					clearInterval(element.timeId);
+   					 //定时器的id值存储到对象的一个属性中
+    				element.timeId = setInterval(function () {
+      					//获取元素的当前的位置,数字类型
+      					var current = element.offsetLeft;
+      					//每次移动的距离
+      					var step = 10;
+      					step = current < target ? step : -step;
+      					//当前移动到位置
+      					current += step;
+      					if (Math.abs(current - target) > Math.abs(step)) {
+        					element.style.left = current + "px";
+      					} else {
+        					//清理定时器
+        					clearInterval(element.timeId);
+        					//直接到达目标
+        					element.style.left = target + "px";
+      					}
+    				}, 10);
+				}
+
+			}
+			new Rpmap(".scroll");
+		</script>
+	</body>
+</html>

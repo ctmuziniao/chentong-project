@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+			*{margin: 0; padding: 0;}
+			#btn{margin: 100px auto; width: 100px; height: 30px; float: left; margin-left: 600px;}
+			.modal{width: 100%; height: 100%; position: fixed; background: rgba(0,0,0,.3);left: 0;top: 0;}
+			.openBtn{ width:100px; height:40px; border:1px solid #ccc; border-radius:5px; display:block; margin:100px auto}
+
+			.popBox_login{display: none;width:500px;height:220px; background:#fff;position:absolute;top:0;left:0; z-index:20;}
+			.popBox_login input{ height:30px; width:200px; border:1px solid #ccc;}
+			.popBox_login p{ padding-left:50px; padding-top:20px;}
+			.popBox_login h4{height:40px; line-height:40px; text-indent:1em; background:#ccc;cursor:move}
+			.popBox_login .loginBtn{width:100px; height:30px;border:1px solid #ccc; margin-left:66px}
+			.popBox_login .close_btn{width:20px; text-align:center; line-height:20px; height:20px; position:absolute; top:10px; right:8px; color:#fff;}
+			#list{display: none;width:600px;height:220px; background:#fff;position:absolute;top:0;left:0; z-index:20;}
+			#box{width:600px; margin:100px auto; table-layout: fixed;}
+			table,th,td{ border:1px solid #000; border-collapse:collapse}
+			td,th{ width:150px; height:30px; padding:10px}
+			#list input[type="text"]{ display:none; height:24px; width:60px; border:1px solid #ccc;}
+			tbody tr td:first-child{text-align: center;}
+			tfoot td{text-align: right;}
+		</style>
+		<script src="tools.js"></script>
+	</head>
+	<body>
+		<button id="btn">发布</button>
+		<div id="container" class="popBox_login"></div>
+		<div id="list">
+			
+		</div>
+		
+		<script>
+			class Publish {
+				constructor(btn) {
+					this.btn = document.querySelector("#btn");
+					this.container = document.querySelector("#container");
+					this.list = document.querySelector("#list");
+					console.log(this.btn,this.container);
+					
+					this.bindEvents();
+					//创建表格
+					this.crList();
+					
+				}
+				
+				//绑事件
+				bindEvents() {
+					//给发布按钮绑事件
+					this.btn.onclick = () => {
+						this.pop();
+						this.closeBtn = this.container.querySelector("#closeBtn");
+						console.log(this.closeBtn);
+						this.relBtn = this.container.querySelector(".relBtn");
+						console.log(this.relBtn);
+						
+						//给关闭按钮绑事件
+						this.closeBtn.onclick = () => {
+							console.log(1);
+							this.close();
+						}
+						
+						//给弹出框里的发布按钮绑事件
+						this.relBtn.onclick = () => {
+							//调用发布内容到页面的方法
+							this.release();
+							this.list.style.display = "block";
+							tools.showCenter(this.list);
+							this.box = this.list.querySelector("#box");
+							this.tbody = this.box.querySelector("tbody");
+							this.getDate();
+							this.crTbody();							
+							this.tr = this.tbody.querySelectorAll("tr");
+							this.tr.forEach(tr => {
+								tr.oncontextmenu = (e) => {
+									this.move(e);
+								}
+							})
+						}
+						
+					}
+					
+					
+				}
+				
+				//撤回
+				move(e) {
+					//阻止默认事件
+					e = e||event;
+					if(e.preventDefault){
+						e.preventDefault();
+					}else{
+						window.event.returnValue = false;
+					}
+					//
+				}
+				//弹出发布框和模态层
+				pop() {
+					this.container.innerHTML = '<h4>发布微博</h4>'+
+						'<a id="closeBtn" class="close_btn" href="javascript:;">×</a>'+
+						'<p><label>用户名：<input id="username" type="text"></label></p>'+
+						'<p><label>内　容：<input id="content" type="text"></label></p>'+
+						'<p><button id="relBtn" class="relBtn" type="button">发布</button></p>';
+						this.container.style.display = "block";
+						tools.showCenter(this.container);
+						console.log(this.container);
+						//创建一个模态层
+						this.modal = document.createElement("div");
+						this.modal.classList.add("modal");
+						document.body.appendChild(this.modal);
+						this.list.style.display = "none";
+				}
+				
+				//关闭弹出框和模态层
+				close() {
+					this.container.style.display = "none";
+					document.body.removeChild(this.modal);
+				}
+				
+				//发布内容到页面中
+				release() {
+					this.username = document.querySelector("#username").value;
+					this.content = document.querySelector("#content").value;
+					//关闭弹出框和模态层
+					this.close();
+				}
+				
+				//创建表格
+				crList() {
+					this.list.innerHTML = `
+					<table id="box">
+						<thead>
+							<tr>
+	             				<th>
+								<label>全选：<input type="checkbox" id="allCheck" class="allCheck"/></label><br>
+								<label>反选：<input type="checkbox" id="reCheck"/></label>
+								</th>
+	            				<th>用户名</th>
+	            				<th>内容</th>
+	            				<th>时间</th>
+	        				</tr>
+						</thead>
+						<tbody>
+						
+						</tbody>
+					</table>`;		
+				}
+				
+				//创建tbody接受数据
+				crTbody() {
+					let row=document.createElement("tr");
+					this.row=this.tbody.appendChild(row);
+					let html = "";
+		
+					html += `
+						<tr>
+							<td><input type="checkbox" class="check"/></td>
+							<td>${this.username}</span><input type="text"></td>
+							<td>${this.content}</span><input type="text"></td>	
+							<td>${this.str}</td>
+							
+						</tr>
+					`;
+				this.row.innerHTML = html;
+				}
+				
+				//日期时间
+				getDate() {
+					var date = new Date();
+					
+					this.hours = date.getHours();
+					this.minutes = date.getMinutes();
+					this.seconds = date.getSeconds();
+					this.str = this.hours + "时" + this.minutes + "分" + this.seconds + "秒";
+					
+				}
+			}
+			
+			new Publish("#btn");
+		</script>
+		
+	</body>
+</html>
